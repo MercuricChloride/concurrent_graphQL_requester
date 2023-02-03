@@ -1,0 +1,10 @@
+query TypesForSpace($space_id: ID) {
+  space(id: $space_id) {
+    types {
+      type {
+        id
+        name
+      }
+    }
+  }
+}

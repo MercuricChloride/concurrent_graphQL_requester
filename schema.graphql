@@ -1,0 +1,99 @@
+type Space @entity {
+  id: ID!
+
+  """
+  Permissions
+
+  We should think of our initial governance model as an implementation
+  detail. These array-based lists of roles won't scale well, but should
+  be fine until we build out a proper governance protocol, at which point
+  we can update the mapping.
+  """
+  admins: [Account!]!
+  editorControllers: [Account!]!
+  editors: [Account!]!
+
+  isRootSpace: Boolean!
+  createdAtBlock: BigInt!
+  entity: GeoEntity
+
+  # These are the types that are defined in this space
+  # Making a distinction between imported and defined types for now, not sure if we want to keep it like this though. Figured it would be better to show changes cross space
+  types: [SpaceType!] @derivedFrom(field: "spaceId")
+  importedTypes: [SpaceType!] #These are the types imported from other spaces
+}
+
+type SpaceType @entity {
+  id: ID!
+  spaceId: Space!
+  type: GeoEntity!
+}
+
+type Account @entity {
+  id: ID!
+  adminOf: [Space!]! @derivedFrom(field: "admins")
+  editorControllerOf: [Space!]! @derivedFrom(field: "editorControllers")
+  editorOf: [Space!]! @derivedFrom(field: "editors")
+}
+
+"""
+An entry in the Log contract.
+"""
+type LogEntry @entity {
+  id: ID!
+  createdAtBlock: BigInt!
+  uri: String!
+  author: Bytes!
+  mimeType: String
+
+  space: Space!
+
+  """
+  The binary data located at the uri.
+  """
+  decoded: Bytes
+
+  """
+  The decoded actions located at the uri.
+  """
+  json: String
+}
+
+"""
+A node within the knowledge graph.
+"""
+type GeoEntity @entity {
+  id: ID!
+  name: String
+
+  """
+  This may not be performant. We can do all the same queries
+  via triples(where: { entity: $id })) if needed.
+  """
+  entityOf: [Triple!]! @derivedFrom(field: "entity")
+}
+
+"""
+An edge within the knowledge graph.
+
+Triples are 3-tuples of (entity, attribute, value).
+"""
+type Triple @entity {
+  id: ID! # TODO: namespace ids with space id
+  entity: GeoEntity!
+  attribute: GeoEntity!
+  valueType: ValueType!
+  valueId: String!
+  numberValue: BigDecimal
+  stringValue: String
+  entityValue: GeoEntity
+  isProtected: Boolean!
+  space: Space!
+}
+
+enum ValueType {
+  NULL
+  NUMBER
+  STRING
+  ENTITY
+}
