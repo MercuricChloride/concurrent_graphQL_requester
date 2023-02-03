@@ -14,14 +14,18 @@ pub struct TypesForSpace;
 
 fn main() -> Result<(), anyhow::Error> {
     let endpoint = "https://api.thegraph.com/subgraphs/name/mercuricchloride/geogenesis";
+    let space_id = std::env::args().nth(1).unwrap();
+    println!("space_id: {}", space_id);
 
     let client = Client::builder()
         .user_agent("graphql-rust/0.10.0")
         .build()?;
 
-    let variables = test::Variables {};
+    let variables = types_for_space::Variables {
+        space_id: Some(space_id),
+    };
 
-    let response_body = post_graphql::<Test, _>(&client, endpoint, variables).unwrap();
+    let response_body = post_graphql::<TypesForSpace, _>(&client, endpoint, variables).unwrap();
 
     println!("{:#?}", response_body);
 
